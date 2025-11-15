@@ -1,0 +1,53 @@
+## Visual Studio ##
+.vs/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+## Build ##
+bin/
+obj/
+out/
+Debug/
+Release/
+[Bb]uild/
+
+## Logs ##
+*.log
+
+## Config gerada pelo Rider/Resharper ##
+.idea/
+*.DotSettings.user
+
+## Sistema operacional ##
+.DS_Store
+Thumbs.db
+
+## Pacotes ##
+packages/
+*.nupkg
+*.snupkg
+
+## Arquivos de publicação ##
+Properties/PublishProfiles/
+
+## Secrets ##
+**/appsettings.Development.json
+**/appsettings.Local.json
+
+# Mas mantenha o appsettings.json normal
+!appsettings.json
+
+## Certificados ##
+*.pfx
+*.p12
+
+## Backup ##
+*.bak
+*.tmp
+
+## Outros ##
+*.coverage
+*.coveragexml
+TestResults/
