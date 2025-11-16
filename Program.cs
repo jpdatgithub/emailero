@@ -11,7 +11,7 @@ builder.Services.AddCors(options =>
         policy
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .WithOrigins("http://localhost:3001"); // <- contato-express em local
+            .WithOrigins("http://localhost:3001"); // <- contato-express
     });
 });
 
@@ -28,6 +28,28 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.UseCors();
+
+app.Use(async (context, next) =>
+{
+    var configuration = context.RequestServices.GetService<IConfiguration>();
+    var apiKey = configuration?["ApiKey"]!;
+
+    if (!context.Request.Headers.TryGetValue("API-KEY", out var extractedApiKey))
+    {
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsync("API Key missing");
+        return;
+    }
+
+    if (!apiKey.Equals(extractedApiKey))
+    {
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsync("Invalid API Key");
+        return;
+    }
+
+    await next.Invoke();
+});
 
 app.MapControllers();
 
