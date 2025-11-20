@@ -4,6 +4,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var frontOrigin = builder.Configuration["PSA_FRONT"];
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -11,7 +13,7 @@ builder.Services.AddCors(options =>
         policy
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .WithOrigins("http://localhost:3001"); // <- contato-express
+            .WithOrigins(frontOrigin ?? "http://localhost:5173");
     });
 });
 
@@ -29,10 +31,18 @@ app.UseAuthorization();
 
 app.UseCors();
 
+// Middleware de API KEY usando variável de ambiente
 app.Use(async (context, next) =>
 {
-    var configuration = context.RequestServices.GetService<IConfiguration>();
-    var apiKey = configuration?["ApiKey"]!;
+    var configuration = context.RequestServices.GetRequiredService<IConfiguration>();
+    var apiKeyFromEnv = configuration["API_KEY"];
+
+    if (string.IsNullOrEmpty(apiKeyFromEnv))
+    {
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync("API_KEY not configured on server");
+        return;
+    }
 
     if (!context.Request.Headers.TryGetValue("API-KEY", out var extractedApiKey))
     {
@@ -41,7 +51,7 @@ app.Use(async (context, next) =>
         return;
     }
 
-    if (!apiKey.Equals(extractedApiKey))
+    if (!apiKeyFromEnv.Equals(extractedApiKey))
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsync("Invalid API Key");
