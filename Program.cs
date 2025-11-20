@@ -1,4 +1,6 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿using Microsoft.AspNetCore.RateLimiting;
+
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -17,6 +19,17 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("formLimiter", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 5;         // 5 requisições
+        limiterOptions.Window = TimeSpan.FromMinutes(1); // por minuto
+        limiterOptions.QueueLimit = 0;          // não faz fila
+        limiterOptions.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+    });
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -31,35 +44,7 @@ app.UseAuthorization();
 
 app.UseCors();
 
-// Middleware de API KEY usando variável de ambiente
-app.Use(async (context, next) =>
-{
-    var configuration = context.RequestServices.GetRequiredService<IConfiguration>();
-    var apiKeyFromEnv = configuration["API_KEY"];
-
-    if (string.IsNullOrEmpty(apiKeyFromEnv))
-    {
-        context.Response.StatusCode = 500;
-        await context.Response.WriteAsync("API_KEY not configured on server");
-        return;
-    }
-
-    if (!context.Request.Headers.TryGetValue("API-KEY", out var extractedApiKey))
-    {
-        context.Response.StatusCode = 401;
-        await context.Response.WriteAsync("API Key missing");
-        return;
-    }
-
-    if (!apiKeyFromEnv.Equals(extractedApiKey))
-    {
-        context.Response.StatusCode = 401;
-        await context.Response.WriteAsync("Invalid API Key");
-        return;
-    }
-
-    await next.Invoke();
-});
+app.UseRateLimiter();
 
 app.MapControllers();
 

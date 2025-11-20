@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Net;
 using System.Net.Mail;
 
@@ -18,6 +19,7 @@ namespace Emaileira.Controllers
         }
 
         [HttpPost("psa")]
+        [EnableRateLimiting("formLimiter")]
         public IActionResult Enviar([FromBody] ContatoModel request)
         {
             try
