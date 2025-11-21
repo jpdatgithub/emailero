@@ -37,14 +37,15 @@ namespace Emaileira.Controllers
                     $@"Nome: {request.Nome}
                     Email: {request.Email}
                     Telefone: {request.Telefone}
+                    Mensagem: {request.Mensagem}";
 
-                    Mensagem:
-                    {request.Mensagem}";
                 mail.IsBodyHtml = false;
 
-                var smtp = new SmtpClient(smtpHost, smtpPort);
-                smtp.Credentials = new NetworkCredential(smtpUser, smtpPass);
-                smtp.EnableSsl = true;
+                var smtp = new SmtpClient(smtpHost, smtpPort)
+                {
+                    Credentials = new NetworkCredential(smtpUser, smtpPass),
+                    EnableSsl = true
+                };
 
                 smtp.Send(mail);
 
